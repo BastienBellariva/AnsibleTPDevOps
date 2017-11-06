@@ -1,0 +1,57 @@
+---
+- hosts: ssh-server
+  remote_user: root
+  tasks:
+  #installation de nginx
+  - name: install nginx
+    apt: name=nginx state=latest update_cache=yes
+
+  #démarrage de nginx
+  - name: start Nginx
+    shell: service nginx start
+
+  #installation de git
+  - name: install git
+    apt: name=git state=latest
+
+  #installation de node.js
+  - name: install node.js
+    apt: name=nodejs state=latest
+
+  #clonage du répertoire git
+  - name: cloning repository git
+    git: 
+      repo: https://git.mrzee.fr/student/my-node-project.git
+      dest: /var/www/my-node-project
+
+  #installation de curl pour installer npm
+  - name: install curl for install npm
+    apt: name=curl state=latest
+
+  #installation du répertoire node pour utiliser npm
+  - name: install node repository for using npm
+    shell: curl -sL https://deb.nodesource.com/setup_6.x | sh
+
+  #installation de pm2 (package manager)
+  - name: install pm2
+    npm: 
+      name: pm2 
+      global: yes 
+      state: latest
+
+  #installation des dépendances
+  - name: install depencies
+    npm: 
+      path: /var/www/my-node-project/myapp
+
+  #Démarrage de l'application via pm2
+  - name: run application via pm2
+    shell: pm2 start /var/www/my-node-project/myapp/bin/www
+
+  #Copie du répertoire vhost
+  - name: copy repository vhost file
+    shell: cp /var/www/my-node-project/vhost /etc/nginx/sites-enabled/default
+
+  #Redémarrage de nginx
+  - name: restart nginx
+    shell: service nginx restart
